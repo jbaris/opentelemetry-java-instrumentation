@@ -29,6 +29,7 @@ public class TracingIterator<K, V> implements Iterator<ConsumerRecord<K, V>> {
   @Nullable private KafkaProcessRequest currentRequest;
   @Nullable private Context currentContext;
   @Nullable private Scope currentScope;
+  private boolean activated = true;
 
   private TracingIterator(
       Iterator<ConsumerRecord<K, V>> delegateIterator, KafkaConsumerContext consumerContext) {
@@ -50,7 +51,10 @@ public class TracingIterator<K, V> implements Iterator<ConsumerRecord<K, V>> {
 
   @Override
   public boolean hasNext() {
-    closeScopeAndEndSpan();
+    if(activated) {
+      closeScopeAndEndSpan();
+    }
+    activated = !activated;
     return delegateIterator.hasNext();
   }
 
@@ -80,6 +84,7 @@ public class TracingIterator<K, V> implements Iterator<ConsumerRecord<K, V>> {
       currentScope = null;
       currentRequest = null;
       currentContext = null;
+      activated = true;
     }
   }
 
